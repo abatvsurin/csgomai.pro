@@ -12,11 +12,6 @@ webSocketServer.on('connection', function(ws) {
     console.log('surin');
   });
   
-  ws.on('data', function(data) {
-      console.log(data.toString());
-      client.end();
-  });  
-  
   ws.on('close', function() {
     console.log('Закрыл соединение');
   });
