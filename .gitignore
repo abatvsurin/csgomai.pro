@@ -1,0 +1,58 @@
+    function wsStart() {
+        ws = new WebSocket("ws://csgomania.pro:8080/");
+
+        ws.onopen = function () {
+            console.log("Система: соединение открыто");
+            $('#rates').empty();
+            w_pack = {cmd: 'welcome'};
+            if (userId.length != 0) {
+                w_pack = {cmd: 'welcome', sessionKey: sessionKey};
+            }
+
+            ws.send(JSON.stringify(w_pack));
+        }
+
+        ws.onclose = function () {
+            console.log("Система: соединение закрыто, пытаюсь переподключиться");
+            setTimeout(wsStart, 2000);
+        }
+
+        ws.onmessage = function (evt) {
+
+            var pack = JSON.parse(evt.data);
+            if (pack.cmd == 'newRates') {
+                $('#newGame').hide();
+                addRatesByUser(pack.data, 'new');
+                updateGameStatus(pack.gameStatus);
+                updateChances(pack.chances);
+            }
+            else if (pack.cmd == 'status') {
+                updateGameStatus(pack.gameStatus);
+                if (pack.gameStatus.countRates == 0) {
+                    $('#newGame').fadeIn();
+                }
+                updateOnline(pack.online);
+                updateCountGames(pack.countGames);
+                updateCountItemsToday(pack.countItemsToday);
+                updateMaxSum(pack.maxSum);
+                addRatesByUsers(pack.data);
+                updateChances(pack.chances);
+            }
+            else if (pack.cmd == 'online') {
+                updateOnline(pack.online);
+            }
+            else if (pack.cmd == 'error') {
+                addError(pack.error);
+            }
+            else if (pack.cmd == 'winner') {
+                addWinner(pack.info);
+            }
+            else if (pack.cmd == 'updatechance') {
+                console.log(pack);
+                //updateChance(pack.chance);
+            } else if (pack.cmd == 'startTimer') {
+                startTimer(pack.countdown);
+            }
+        }
+    }
+    wsStart();
